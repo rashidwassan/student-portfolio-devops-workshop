@@ -126,25 +126,165 @@ git push origin main
   git pull origin main
   ```
 
-## 🔄 CI/CD Integration (Coming Soon)
+## 🔄 Automated Deployment with GitHub Actions
 
-During the DevOps workshop, we will add:
-- **GitHub Actions workflows** for automated deployment
-- **Automated testing** to verify code quality
-- **Continuous Deployment** to publish your portfolio automatically
-- **Build processes** and optimization
+This section will guide you through setting up automated deployment of your portfolio website to GitHub Pages using GitHub Actions. Once configured, your website will automatically update whenever you push changes to your repository!
 
-Stay tuned for these advanced features that will automate your development workflow!
+### What is GitHub Actions?
+
+GitHub Actions is a continuous integration and continuous deployment (CI/CD) platform that allows you to automate your build, test, and deployment pipeline. Every time you push code to your repository, GitHub Actions can automatically deploy your website to GitHub Pages.
+
+### Step-by-Step Setup Guide
+
+#### Step 1: Create the GitHub Actions Workflow File
+
+1. In your repository, create a new directory structure: `.github/workflows/`
+   ```bash
+   mkdir -p .github/workflows
+   ```
+
+2. Inside the `workflows` folder, create a new file named `deploy.yml`
+
+3. Copy and paste the following code into `deploy.yml`:
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Triggers deployment when you push to the main branch
+  workflow_dispatch:  # Allows you to manually trigger the workflow from GitHub UI
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload entire repository
+          path: '.'
+          
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+#### Step 2: Enable GitHub Pages in Repository Settings
+
+1. Go to your GitHub repository in your web browser
+2. Click on **Settings** (top right of the repository page)
+3. In the left sidebar, click on **Pages** (under "Code and automation")
+4. Under "Build and deployment":
+   - **Source**: Select "GitHub Actions"
+5. Save the changes
+
+#### Step 3: Push Your Workflow to GitHub
+
+After creating the workflow file, commit and push it to your repository:
+
+```bash
+git add .github/workflows/deploy.yml
+git commit -m "Add GitHub Actions workflow for automated deployment"
+git push origin main
+```
+
+#### Step 4: Verify Deployment
+
+1. Go to the **Actions** tab in your GitHub repository
+2. You should see your workflow running
+3. Once complete (green checkmark ✓), go to **Settings** > **Pages**
+4. You'll see your published site URL (e.g., `https://yourusername.github.io/student-portfolio-devops-workshop/`)
+5. Click the URL to view your live portfolio!
+
+### Understanding the Workflow
+
+Here's what each part of the workflow does:
+
+- **`on: push`**: Triggers the workflow automatically when you push to the main branch
+- **`workflow_dispatch`**: Allows you to manually run the workflow from GitHub's UI
+- **`permissions`**: Grants necessary permissions to deploy to GitHub Pages
+- **`build` job**: Prepares your website files for deployment
+- **`deploy` job**: Publishes your site to GitHub Pages
+
+### Making Updates
+
+After setup, deploying updates is easy:
+
+1. Make changes to your `index.html`, `style.css`, or other files
+2. Commit and push your changes:
+   ```bash
+   git add .
+   git commit -m "Update portfolio content"
+   git push origin main
+   ```
+3. GitHub Actions automatically deploys your changes
+4. Your live site updates in 1-2 minutes!
+
+### Troubleshooting
+
+**Workflow fails to run:**
+- Ensure the workflow file is in `.github/workflows/` directory
+- Check that the file is named with `.yml` or `.yaml` extension
+- Verify you've selected "GitHub Actions" as the source in Pages settings
+
+**Site not updating:**
+- Check the Actions tab for errors
+- Ensure your push was to the `main` branch
+- Wait a few minutes for GitHub's CDN to update
+
+**404 Error on site:**
+- Verify GitHub Pages is enabled in Settings
+- Check that the workflow completed successfully
+- Ensure your repository is public (or you have GitHub Pro/Team for private repos)
+
+### Benefits of Automated Deployment
+
+✅ **No manual deployment needed** - Push code and it's live automatically  
+✅ **Always in sync** - Your live site always matches your repository  
+✅ **Version history** - Every deployment is tracked in your commit history  
+✅ **Free hosting** - GitHub Pages is free for public repositories  
+✅ **Professional workflow** - Learn industry-standard CI/CD practices
 
 ## 📁 Project Structure
 
 ```
 student-portfolio-devops-workshop/
 │
-├── index.html          # Main HTML file with portfolio structure
-├── style.css           # CSS file with all styling
+├── .github/
+│   └── workflows/
+│       └── deploy.yml  # GitHub Actions workflow for automated deployment
 ├── assets/             # Folder for images and media
 │   └── profile.jpg     # Placeholder profile picture
+├── index.html          # Main HTML file with portfolio structure
+├── style.css           # CSS file with all styling
 └── README.md           # Project documentation (this file)
 ```
 
